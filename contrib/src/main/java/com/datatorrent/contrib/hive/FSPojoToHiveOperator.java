@@ -190,6 +190,10 @@ public class FSPojoToHiveOperator extends AbstractFSRollingOutputOperator<Object
   @SuppressWarnings("unchecked")
   public ArrayList<String> getHivePartition(Object tuple)
   {
+    if (getters.isEmpty()) {
+      processFirstTuple(tuple);
+    }
+
     int sizeOfColumns = hiveColumns.size();
     int sizeOfPartitionColumns = hivePartitionColumns.size();
     int size = sizeOfColumns + sizeOfPartitionColumns;

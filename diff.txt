@@ -1,0 +1,64 @@
+diff --git a/contrib/src/main/java/com/datatorrent/contrib/hive/AbstractFSRollingOutputOperator.java b/contrib/src/main/java/com/datatorrent/contrib/hive/AbstractFSRollingOutputOperator.java
+index ecfd179..b38ce0d 100755
+--- a/contrib/src/main/java/com/datatorrent/contrib/hive/AbstractFSRollingOutputOperator.java
++++ b/contrib/src/main/java/com/datatorrent/contrib/hive/AbstractFSRollingOutputOperator.java
+@@ -178,6 +178,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
+   {
+   }
+ 
++  /*
+   protected void rotateCall(String lastFile)
+   {
+     try {
+@@ -192,6 +193,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
+       DTThrowable.rethrow(ex);
+     }
+   }
++  */
+ 
+   public String getHDFSRollingLastFile()
+   {
+@@ -215,6 +217,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
+    */
+   public abstract ArrayList<String> getHivePartition(T tuple);
+ 
++  /*
+   @Override
+   public void endWindow()
+   {
+@@ -229,6 +232,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
+     super.endWindow();
+ 
+   }
++  */
+ 
+   public long getMaxWindowsWithNoData()
+   {
+diff --git a/contrib/src/main/java/com/datatorrent/contrib/hive/FSPojoToHiveOperator.java b/contrib/src/main/java/com/datatorrent/contrib/hive/FSPojoToHiveOperator.java
+index 8571c18..61c8b08 100644
+--- a/contrib/src/main/java/com/datatorrent/contrib/hive/FSPojoToHiveOperator.java
++++ b/contrib/src/main/java/com/datatorrent/contrib/hive/FSPojoToHiveOperator.java
+@@ -190,6 +190,10 @@ public class FSPojoToHiveOperator extends AbstractFSRollingOutputOperator<Object
+   @SuppressWarnings("unchecked")
+   public ArrayList<String> getHivePartition(Object tuple)
+   {
++    if (getters.isEmpty()) {
++      processFirstTuple(tuple);
++    }
++
+     int sizeOfColumns = hiveColumns.size();
+     int sizeOfPartitionColumns = hivePartitionColumns.size();
+     int size = sizeOfColumns + sizeOfPartitionColumns;
+diff --git a/contrib/src/main/java/com/datatorrent/contrib/hive/HiveOperator.java b/contrib/src/main/java/com/datatorrent/contrib/hive/HiveOperator.java
+index c8fd913..bc164a8 100755
+--- a/contrib/src/main/java/com/datatorrent/contrib/hive/HiveOperator.java
++++ b/contrib/src/main/java/com/datatorrent/contrib/hive/HiveOperator.java
+@@ -162,7 +162,7 @@ public class HiveOperator extends AbstractStoreOutputOperator<FilePartitionMappi
+     String command = null;
+     String filepath = hivestore.getFilepath() + Path.SEPARATOR + filename;
+     logger.debug("processing {} filepath", filepath);
+-    int numPartitions = partition.size();
++    int numPartitions = partition == null ? 0 : partition.size();
+     try {
+       if (fs.exists(new Path(filepath))) {
+         if (numPartitions > 0) {

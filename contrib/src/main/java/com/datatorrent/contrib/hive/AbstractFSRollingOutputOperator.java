@@ -178,6 +178,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
   {
   }
 
+  /*
   protected void rotateCall(String lastFile)
   {
     try {
@@ -192,6 +193,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
       DTThrowable.rethrow(ex);
     }
   }
+  */
 
   public String getHDFSRollingLastFile()
   {
@@ -215,6 +217,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
    */
   public abstract ArrayList<String> getHivePartition(T tuple);
 
+  /*
   @Override
   public void endWindow()
   {
@@ -229,6 +232,7 @@ public abstract class AbstractFSRollingOutputOperator<T> extends AbstractFileOut
     super.endWindow();
 
   }
+  */
 
   public long getMaxWindowsWithNoData()
   {

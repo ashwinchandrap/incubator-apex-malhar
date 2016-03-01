@@ -162,7 +162,7 @@ public class HiveOperator extends AbstractStoreOutputOperator<FilePartitionMappi
     String command = null;
     String filepath = hivestore.getFilepath() + Path.SEPARATOR + filename;
     logger.debug("processing {} filepath", filepath);
-    int numPartitions = partition.size();
+    int numPartitions = partition == null ? 0 : partition.size();
     try {
       if (fs.exists(new Path(filepath))) {
         if (numPartitions > 0) {
