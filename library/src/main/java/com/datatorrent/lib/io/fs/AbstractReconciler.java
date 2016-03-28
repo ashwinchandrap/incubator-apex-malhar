@@ -74,11 +74,11 @@ public abstract class AbstractReconciler<INPUT, QUEUETUPLE> extends BaseOperator
   // this stores the mapping from the window to the list of enqueued tuples
   private Map<Long, List<QUEUETUPLE>> currentWindowTuples = Maps.newConcurrentMap();
   private Queue<Long> currentWindows = Queues.newLinkedBlockingQueue();
-  protected Queue<QUEUETUPLE> committedTuples = Queues.newLinkedBlockingQueue();
-  protected transient Queue<QUEUETUPLE> doneTuples = Queues.newLinkedBlockingQueue();
-  private transient Queue<QUEUETUPLE> waitingTuples = Queues.newLinkedBlockingQueue();
-  private transient volatile boolean execute;
-  private transient AtomicReference<Throwable> cause;
+  private transient Queue<List<QUEUETUPLE>> doneTuples = Queues.newLinkedBlockingQueue();
+  private transient Queue<List<QUEUETUPLE>> waitingTuples = Queues.newLinkedBlockingQueue();
+  protected transient volatile boolean execute;
+  protected transient AtomicReference<Throwable> cause;
+  private Queue<List<QUEUETUPLE>> committedTuples = Queues.newLinkedBlockingQueue();
 
   @Override
   public void setup(Context.OperatorContext context)
@@ -143,8 +143,8 @@ public abstract class AbstractReconciler<INPUT, QUEUETUPLE> extends BaseOperator
     while (processedWindowId <= l) {
       List<QUEUETUPLE> outputDataList = currentWindowTuples.get(processedWindowId);
       if (outputDataList != null && !outputDataList.isEmpty()) {
-        committedTuples.addAll(outputDataList);
-        waitingTuples.addAll(outputDataList);
+        committedTuples.add(outputDataList);
+        waitingTuples.add(outputDataList);
       }
       currentWindows.remove();
       currentWindowTuples.remove(processedWindowId);
@@ -174,9 +174,12 @@ public abstract class AbstractReconciler<INPUT, QUEUETUPLE> extends BaseOperator
             while (waitingTuples.isEmpty()) {
               Thread.sleep(spinningTime);
             }
-            QUEUETUPLE output = waitingTuples.remove();
-            processCommittedData(output);
-            doneTuples.add(output);
+            List<QUEUETUPLE> outputList = committedTuples.peek();
+            for (QUEUETUPLE output : outputList) {
+              processCommittedData(output);
+            }
+            committedTuples.remove();
+            processedCommittedData();
           }
         }
         catch (Throwable e) {
@@ -212,4 +215,15 @@ public abstract class AbstractReconciler<INPUT, QUEUETUPLE> extends BaseOperator
    * @param queueInput
    */
   protected abstract void processCommittedData(QUEUETUPLE queueInput);
+
+  /**
+   * Call back method for implemented operators to learn that QUEUETUPLE is processed
+   */
+  protected void processedCommittedData() {
+    // empty
+  }
+
+  public int getQueueSize() {
+    return committedTuples.size();
+  }
 }
